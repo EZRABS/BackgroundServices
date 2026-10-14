@@ -18,5 +18,10 @@
         android:layout_height="wrap_content"
         android:text="Mulai Lacak Aktivitas"
         android:id="@+id/btnStart"/>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Mulai Latihan"
+        android:id="@+id/btnMulaiLatihan"/>
 
 </LinearLayout>
