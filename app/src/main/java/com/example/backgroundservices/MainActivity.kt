@@ -18,6 +18,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var statusTextView: TextView
     private lateinit var btnStart: Button
 
+    private lateinit var btnMulaiLatihan: Button
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
@@ -43,6 +44,17 @@ class MainActivity : AppCompatActivity() {
                 )
             }
         }
+
+        btnMulaiLatihan = findViewById(R.id.btnMulaiLatihan)
+
+        btnMulaiLatihan.setOnClickListener {
+            if (hasAllPermissions()){
+                startTrackerService()
+            }else{
+                ActivityCompat.requestPermissions(this, permissionsToRequest, REQUEST_CODE_PERMISSIONS)
+            }
+        }
+
 
     }
     private val permissionsToRequest = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

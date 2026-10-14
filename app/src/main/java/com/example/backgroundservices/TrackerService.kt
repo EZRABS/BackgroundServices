@@ -26,6 +26,9 @@ class TrackerService : Service(), SensorEventListener {
     private val NOTIFICATION_ID_SERVICE_RUNNING = 1
     private val NOTIFICATION_ID_JUMP_DETECTED = 2
 
+
+    private var jumlahLangkah = 0;
+    private var waktuLangkahTerakhir: Long = 0;
     override fun onCreate(){
         super.onCreate()
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
@@ -128,19 +131,23 @@ class TrackerService : Service(), SensorEventListener {
     }
 
     override fun onSensorChanged(event: SensorEvent?) {
-        if (event?.sensor?.type == Sensor.TYPE_ACCELEROMETER){
+        if (event?.sensor?.type == Sensor.TYPE_ACCELEROMETER) {
             val y = event.values[1]
-            val jumpThreshold = 15.0
+            val stepThreshold = 12.0
+            val waktuSekarang = System.currentTimeMillis()
 
-            if (abs(y) > jumpThreshold) {
-                Log.d("Tracker Service", "LOMPATAN Terdeteksi! y: $y")
+            if (Math.abs(y) > stepThreshold && (waktuSekarang - waktuLangkahTerakhir) > 1000) {
+                jumlahLangkah++
+                waktuLangkahTerakhir = waktuSekarang
+                Log.d("TrackerService", "Langkah terdeteksi! Total: $jumlahLangkah")
 
-                sensorManager.unregisterListener(this)
 
-                showJumpNotification()
-                stopSelf()
+                if (jumlahLangkah > 2) {
+                    sensorManager.unregisterListener(this)
+
+                    stopSelf()
+                }
             }
-
         }
     }
 
