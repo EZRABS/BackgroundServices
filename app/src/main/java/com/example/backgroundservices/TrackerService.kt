@@ -122,6 +122,18 @@ class TrackerService : Service(), SensorEventListener {
         }
     }
 
+    private fun bukaAppdanKirimData() {
+        sensorManager.unregisterListener(this)
+
+        val intent = Intent(this, MainActivity::class.java).apply {
+            action = "ACTION_LATIHAN_SELESAI"
+            putExtra("JUMLAH_LANGKAH", jumlahLangkah)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+        startActivity(intent)
+        stopSelf()
+    }
+
     override fun onBind(intent: Intent): IBinder? {
         return null
     }
@@ -144,8 +156,7 @@ class TrackerService : Service(), SensorEventListener {
 
                 if (jumlahLangkah > 2) {
                     sensorManager.unregisterListener(this)
-
-                    stopSelf()
+                    bukaAppdanKirimData()
                 }
             }
         }

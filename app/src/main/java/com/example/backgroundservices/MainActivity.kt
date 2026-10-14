@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.provider.CalendarContract
 import android.widget.Button
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
@@ -84,9 +85,32 @@ class MainActivity : AppCompatActivity() {
         statusTextView.text = "Background Service sedang berjalan..."
     }
 
-    private fun handleIntent(intent: Intent?){
-        if (intent?.action == ACTION_SERVICE_STOPPED_JUMP){
-            statusTextView.text = "Background Service sudah berhenti karena Anda melompat."
+    private fun handleIntent(intent: Intent?) {
+        if (intent?.action == "ACTION_LATIHAN_SELESAI") {
+            val totalLangkah = intent.getIntExtra("JUMLAH_LANGKAH", 0)
+            statusTextView.text = "Latihan Selesai!\nJumlah Langkah/Lompatan: $totalLangkah"
+            buatEventKalender(totalLangkah)
+
+        } else if (intent?.action == ACTION_SERVICE_STOPPED_JUMP) {
+            statusTextView.text = "Background services sudah berhenti karena Anda melompat"
+        }
+    }
+
+    private fun buatEventKalender(jumlahLangkah: Int) {
+        val kalender = java.util.Calendar.getInstance()
+
+        val intentKalender = Intent(Intent.ACTION_INSERT).apply {
+            data = CalendarContract.Events.CONTENT_URI
+            putExtra(CalendarContract.Events.TITLE, "Latihan Fisik Selesai")
+            putExtra(CalendarContract.Events.DESCRIPTION, "Berhasil menyelesaikan latihan hari ini dengan total $jumlahLangkah langkah/lompatan.")
+            putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, kalender.timeInMillis)
+            putExtra(CalendarContract.EXTRA_EVENT_END_TIME, kalender.timeInMillis + (60 * 60 * 1000))
+        }
+
+        try {
+            startActivity(intentKalender)
+        } catch (e: Exception) {
+            statusTextView.append("\n(Aplikasi Kalender tidak ditemukan)")
         }
     }
     companion object{
