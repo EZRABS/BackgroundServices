@@ -1,11 +1,16 @@
 package com.example.backgroundservices
 
+import android.app.ComponentCaller
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 
@@ -15,6 +20,20 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
+        statusTextView = findViewById(R.id.statusTextView)
+        btnStart = findViewById<Button>(R.id.btnStart)
+
+        btnStart.setOnClickListener {
+            if (hasAllPermissions()) {
+                startTrackerService()
+            }else{
+                ActivityCompat.requestPermissions(
+                    this,
+                    permissionsToRequest,
+                    REQUEST_CODE_PERMISSIONS
+                )
+            }
+        }
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
@@ -39,8 +58,55 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    private fun hasAllPermissions(): Boolean{
+        return permissionsToRequest.all {
+            ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
+        }
+    }
+
+    private fun startTrackerService(){
+        val serviceIntent = Intent(this, TrackerService::class.java)
+        ContextCompat.startForegroundService(this, serviceIntent)
+        statusTextView.text = "Background Service sedang berjalan..."
+    }
+
+    private fun handleIntent(intent: Intent?){
+        if (intent?.action == ACTION_SERVICE_STOPPED_JUMP){
+            statusTextView.text = "Background Service sudah berhenti karena Anda melompat."
+        }
+    }
     companion object{
         const val ACTION_SERVICE_STOPPED_JUMP = "com.example.backgroundservices.ACTION_SERVICE_STOPPED_JUMP"
         const val REQUEST_CODE_PERMISSIONS = 101
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_CODE_PERMISSIONS){
+            var allPermissionsGranted = true
+            for (result in grantResults){
+                if (result != PackageManager.PERMISSION_GRANTED){
+                    allPermissionsGranted = false
+                    break
+                }
+            }
+            if (allPermissionsGranted){
+                val serviceIntent = Intent(this, TrackerService::class.java)
+                ContextCompat.startForegroundService(this, serviceIntent)
+                finish()
+            } else{
+                statusTextView.text = "Izin ditolak, service tidak dapat dijalankan"
+            }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent, caller: ComponentCaller) {
+        super.onNewIntent(intent, caller)
+        setIntent(intent)
+        handleIntent(intent)
     }
 }
